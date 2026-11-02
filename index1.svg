@@ -1,0 +1,2137 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="100%" height="100%" version="1.1" role="application" aria-label="GradePilot interactive grade calculator" style="display:block;width:100vw;height:100vh;overflow:hidden;background:#090d19">
+  <title>GradePilot — Interactive Grade Calculator</title>
+  <desc>An interactive weighted grade calculator with a live projection, grade categories, assignment score slider, school clock, and Chromebook battery widget.</desc>
+  <foreignObject x="0" y="0" width="100%" height="100%" requiredExtensions="http://www.w3.org/1999/xhtml">
+    <xhtml:div id="gpRoot" class="gp-document" style="width:100%;height:100%;min-height:100vh;overflow-x:hidden;overflow-y:auto;"><xhtml:style type="text/css"><![CDATA[
+    :root {
+      color-scheme: dark;
+      --bg: #090d19;
+      --panel: rgba(19, 27, 48, .86);
+      --line: rgba(167, 186, 226, .14);
+      --text: #f4f7ff;
+      --muted: #9aa8c4;
+      --dim: #73819e;
+      --cyan: #63e6e2;
+      --blue: #8fa7ff;
+      --green: #69e6ad;
+      --red: #ff829b;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --radius: 22px;
+      --theme-a: #8fa7ff;
+      --theme-b: #63e6e2;
+      --theme-bg: #090d19;
+    }
+    * { box-sizing: border-box; }
+    .gp-document {
+      margin: 0; min-height: 100vh; padding: 34px 20px 55px; color: var(--text);
+      background: radial-gradient(850px 520px at 8% -10%, rgba(83,111,255,.2), transparent 62%),
+                  radial-gradient(700px 480px at 100% 15%, rgba(67,220,212,.13), transparent 60%),
+                  radial-gradient(700px 500px at 45% 110%, rgba(154,100,255,.12), transparent 60%), var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    .shell { width: min(920px, 100%); margin: 0 auto; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:48px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:.03em; }
+    .brand-mark { width:39px; height:39px; display:grid; place-items:center; border-radius:13px; color:#07131d; background:linear-gradient(135deg,var(--cyan),var(--blue)); box-shadow:0 8px 24px rgba(99,230,226,.22); font-size:20px; }
+    .brand small { display:block; color:var(--dim); font-size:9px; font-weight:800; letter-spacing:.19em; margin-top:2px; }
+    .top-note { color:var(--muted); font-size:12px; border:1px solid var(--line); background:rgba(255,255,255,.025); padding:9px 13px; border-radius:999px; }
+    .hero { margin-bottom:29px; }
+    .eyebrow { color:var(--cyan); font-size:11px; letter-spacing:.19em; text-transform:uppercase; font-weight:850; margin-bottom:12px; }
+    h1 { margin:0; font-size:clamp(35px,6vw,58px); line-height:1.02; letter-spacing:-.055em; font-weight:850; }
+    h1 span { color:transparent; background:linear-gradient(100deg,var(--cyan),#9cafff 56%,#c69aff); background-clip:text; -webkit-background-clip:text; }
+    .subtitle { color:var(--muted); line-height:1.65; max-width:630px; font-size:14px; margin:15px 0 0; }
+    .dashboard { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr); gap:17px; }
+    .panel { border:1px solid var(--line); border-radius:var(--radius); background:linear-gradient(145deg,rgba(24,34,59,.9),rgba(13,19,35,.92)); box-shadow:var(--shadow); backdrop-filter:blur(16px); }
+    .current-panel { padding:24px; display:flex; flex-direction:column; justify-content:space-between; gap:24px; }
+    .panel-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .section-kicker { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.14em; font-weight:850; }
+    .step-tag { color:#b5c2df; font-size:10px; font-weight:850; border:1px solid var(--line); padding:6px 9px; border-radius:999px; }
+    .grade-entry { display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; }
+    .grade-input-wrap { flex:1; min-width:180px; }
+    .field-label { color:#c3cee5; display:block; font-size:12px; font-weight:700; margin-bottom:9px; }
+    .grade-input-row { display:flex; align-items:center; gap:9px; }
+    .grade-input { width:100%; border:0; outline:0; color:var(--text); background:transparent; font-size:clamp(42px,6vw,60px); letter-spacing:-.06em; font-weight:850; padding:0; border-bottom:1px solid rgba(255,255,255,.2); border-radius:0; }
+    .grade-input:focus { border-color:var(--cyan); }
+    .percent { font-size:26px; color:var(--muted); padding-bottom:6px; }
+    .helper { color:var(--dim); font-size:11px; line-height:1.55; margin-top:9px; }
+    .current-chip { color:#cbd7f1; background:rgba(255,255,255,.045); border:1px solid var(--line); border-radius:13px; padding:12px 14px; min-width:112px; }
+    .current-chip strong { display:block; font-size:21px; letter-spacing:-.04em; }
+    .current-chip span { color:var(--muted); font-size:10px; }
+    .projection-panel { padding:24px; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; min-height:235px; }
+    .projection-panel::before { content:""; position:absolute; width:230px; height:230px; border-radius:50%; right:-90px; top:-115px; background:rgba(99,230,226,.12); filter:blur(3px); pointer-events:none; }
+    .projection-panel > * { position:relative; }
+    .live-indicator { display:flex; align-items:center; gap:7px; color:var(--cyan); font-size:10px; text-transform:uppercase; font-weight:850; letter-spacing:.15em; }
+    .live-dot { width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 12px var(--cyan); }
+    .projected-number { font-size:clamp(55px,7vw,76px); font-weight:900; letter-spacing:-.075em; line-height:1; margin:25px 0 12px; }
+    .projected-number em { font-size:25px; color:var(--muted); font-style:normal; letter-spacing:-.03em; margin-left:3px; }
+    .projection-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .delta { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border-radius:999px; font-size:11px; font-weight:850; background:rgba(255,255,255,.06); color:var(--muted); }
+    .delta.up { color:var(--green); background:rgba(105,230,173,.1); }
+    .delta.down { color:var(--red); background:rgba(255,130,155,.1); }
+    .letter-grade { color:#d7e0f4; font-size:12px; }
+    .section { margin-top:18px; padding:23px 24px; }
+    .section-title-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:17px; }
+    h2 { margin:0; font-size:17px; letter-spacing:-.025em; }
+    .section-desc { color:var(--muted); font-size:11px; margin-top:5px; line-height:1.5; }
+    .category-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .category { display:flex; justify-content:space-between; align-items:center; gap:9px; padding:14px 13px; background:rgba(255,255,255,.035); border:1px solid var(--line); border-radius:14px; min-width:0; }
+    .category-name { color:#dce6fa; font-size:12px; font-weight:750; line-height:1.35; }
+    .category-weight { flex-shrink:0; color:var(--cyan); font-weight:850; font-size:15px; }
+    .assignment-section { margin-top:18px; padding:23px 24px 25px; }
+    .assignment-controls { display:grid; grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr); gap:22px; align-items:center; }
+    .select-input { width:100%; color:var(--text); background:rgba(4,9,20,.45); border:1px solid var(--line); border-radius:11px; outline:none; padding:12px; font-size:12px; }
+    .select-input:focus { border-color:rgba(99,230,226,.7); box-shadow:0 0 0 3px rgba(99,230,226,.08); }
+    .select-input option { background:#111a2d; }
+    .slider-heading { display:flex; justify-content:space-between; align-items:center; margin-bottom:11px; }
+    .slider-value { color:var(--cyan); font-size:20px; font-weight:900; letter-spacing:-.04em; }
+    input[type="range"] { width:100%; accent-color:var(--cyan); cursor:pointer; }
+    .range-labels { display:flex; justify-content:space-between; color:var(--dim); font-size:10px; margin-top:3px; }
+    .footer-note { text-align:center; margin:20px auto 0; max-width:760px; color:var(--dim); font-size:10px; line-height:1.6; }
+    @media(max-width:720px) { .dashboard { grid-template-columns:1fr; } .category-list { grid-template-columns:1fr; } .assignment-controls { grid-template-columns:1fr; gap:18px; } }
+    @media(max-width:520px) { .gp-document { padding:22px 13px 40px; } .topbar { margin-bottom:36px; } .top-note { display:none; } .current-panel,.projection-panel,.section,.assignment-section { padding:18px; } .grade-entry { align-items:flex-start; } .current-chip { min-width:100%; } }
+  
+
+    /* Adapted from the supplied index for GradePilot */
+/* LOADING SCREEN */
+
+#loadingScreen{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:
+    radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--theme-a) 13%,transparent),transparent 29%),
+    radial-gradient(circle at 50% 58%,color-mix(in srgb,var(--theme-b) 10%,transparent),transparent 46%),
+    radial-gradient(circle at 15% 85%,color-mix(in srgb,var(--theme-a) 7%,transparent),transparent 32%),
+    var(--theme-bg,#06070b);
+  background-size:160% 160%,150% 150%,125% 125%,100% 100%;
+  animation:loaderBackdrop 9s ease-in-out infinite alternate;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  transition:
+    opacity .9s cubic-bezier(.2,.8,.2,1),
+    visibility .9s ease
+}
+
+#loadingScreen.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none
+}
+
+#loadingScreen:before,
+#loadingScreen:after{
+  content:"";
+  position:absolute;
+  width:2px;
+  height:145%;
+  background:linear-gradient(transparent,color-mix(in srgb,var(--theme-a) 0%,transparent),color-mix(in srgb,var(--theme-b) 30%,transparent),transparent);
+  transform:rotate(25deg);
+  filter:blur(.2px);
+  opacity:.55;
+  animation:loaderLines 5s ease-in-out infinite
+}
+
+#loadingScreen:before{left:20%}
+
+#loadingScreen:after{
+  right:20%;
+  animation-delay:1.5s
+}
+
+.loaderGlow{
+  position:absolute;
+  width:430px;
+  height:430px;
+  border-radius:50%;
+  background:conic-gradient(
+    from 0deg,
+    transparent,
+    color-mix(in srgb,var(--theme-a) 34%,transparent),
+    color-mix(in srgb,var(--theme-b) 36%,transparent),
+    transparent,
+    color-mix(in srgb,var(--theme-a) 25%,transparent),
+    transparent
+  );
+  filter:blur(58px);
+  opacity:.95;
+  animation:loaderSpin 6s linear infinite,loaderGlowPulse 4.2s ease-in-out infinite
+}
+
+.loaderRing{
+  position:absolute;
+  width:250px;
+  height:250px;
+  border:1px solid color-mix(in srgb,var(--theme-b) 18%,transparent);
+  border-top-color:color-mix(in srgb,var(--theme-a) 58%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 32px color-mix(in srgb,var(--theme-a) 9%,transparent);
+  animation:loaderRing 4.5s ease-in-out infinite
+}
+
+.loaderRing2{
+  position:absolute;
+  width:350px;
+  height:350px;
+  border:1px solid color-mix(in srgb,var(--theme-a) 15%,transparent);
+  border-right-color:color-mix(in srgb,var(--theme-b) 35%,transparent);
+  border-radius:50%;
+  box-shadow:0 0 50px color-mix(in srgb,var(--theme-b) 7%,transparent);
+  animation:loaderRing2 6s ease-in-out infinite
+}
+
+.loaderLogo{
+  position:relative;
+  z-index:2;
+  width:92px;
+  height:92px;
+  border-radius:28px;
+  display:grid;
+  place-items:center;
+  font-size:42px;
+  font-weight:950;
+  background:linear-gradient(135deg,#8fa7ff,#63e6e2);
+  color:white;
+  box-shadow:
+    0 0 35px #8fa7ff66,
+    0 0 80px #63e6e222;
+  animation:
+    loaderFloat 1.8s ease-in-out infinite,
+    loaderLogoIn 1.15s cubic-bezier(.2,.8,.2,1) both
+}
+
+.loaderBrand{
+  position:relative;
+  z-index:2;
+  margin-top:24px;
+  font-size:25px;
+  font-weight:950;
+  letter-spacing:6px;
+  background:linear-gradient(110deg,#fff,#aebcff 45%,#63e6e2);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  animation:loaderTextIn 1s .2s cubic-bezier(.2,.8,.2,1) both
+}
+
+.loaderSub{
+  position:relative;
+  z-index:2;
+  margin-top:2px;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:5px;
+  color:#788296;
+  animation:loaderTextIn 1s .35s cubic-bezier(.2,.8,.2,1) both
+}
+
+.loaderLine{
+  position:relative;
+  z-index:2;
+  width:210px;
+  height:4px;
+  margin-top:30px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#ffffff0d;
+  box-shadow:0 0 20px #8fa7ff10
+}
+
+.loaderProgress{
+  height:100%;
+  width:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--theme-a),var(--theme-b));
+  box-shadow:0 0 15px color-mix(in srgb,var(--theme-b) 48%,transparent);
+  animation:loaderProgress 2.8s cubic-bezier(.15,.7,.2,1) forwards
+}
+
+.loaderStatus{
+  position:relative;
+  z-index:2;
+  margin-top:13px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  color:#697489;
+  animation:loaderBlink 1.2s ease-in-out infinite
+}
+
+@keyframes loaderSpin{
+  from{transform:rotate(0deg) scale(1)}
+  to{transform:rotate(360deg) scale(1.08)}
+}
+
+@keyframes loaderRing{
+  0%,100%{transform:scale(.92) rotate(0deg);opacity:.35}
+  50%{transform:scale(1.08) rotate(180deg);opacity:.75}
+}
+
+@keyframes loaderRing2{
+  0%,100%{transform:scale(1) rotate(0deg);opacity:.2}
+  50%{transform:scale(.86) rotate(-180deg);opacity:.55}
+}
+
+@keyframes loaderLines{
+  0%,100%{opacity:0;transform:translateY(-10%) rotate(25deg)}
+  50%{opacity:1;transform:translateY(10%) rotate(25deg)}
+}
+
+@keyframes loaderFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-7px)}
+}
+
+@keyframes loaderLogoIn{
+  from{
+    opacity:0;
+    transform:scale(.65) rotate(-12deg);
+    filter:blur(8px)
+  }
+  to{
+    opacity:1;
+    transform:scale(1) rotate(0);
+    filter:blur(0)
+  }
+}
+
+@keyframes loaderTextIn{
+  from{
+    opacity:0;
+    transform:translateY(12px);
+    filter:blur(5px)
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+    filter:blur(0)
+  }
+}
+
+@keyframes loaderProgress{
+  0%{width:0}
+  18%{width:18%}
+  40%{width:44%}
+  62%{width:67%}
+  82%{width:85%}
+  100%{width:100%}
+}
+
+@keyframes loaderBackdrop{
+  0%{background-position:0% 20%,100% 65%,15% 80%,0 0;transform:scale(1)}
+  50%{background-position:55% 0%,35% 45%,70% 45%,0 0;transform:scale(1.025)}
+  100%{background-position:100% 80%,0% 20%,30% 10%,0 0;transform:scale(1.045)}
+}
+
+@keyframes loaderGlowPulse{
+  0%,100%{transform:scale(.92);opacity:.72}
+  50%{transform:scale(1.12);opacity:1}
+}
+
+@keyframes loaderBlink{
+  0%,100%{opacity:.45}
+  50%{opacity:1}
+}
+
+@media(max-width:600px){
+  .loaderLogo{
+    width:78px;
+    height:78px;
+    border-radius:23px;
+    font-size:35px
+  }
+
+  .loaderBrand{
+    font-size:21px;
+    letter-spacing:5px
+  }
+
+  .loaderLine{
+    width:165px
+  }
+}
+
+
+/* BATTERY */
+
+#batteryWidget{
+  position:fixed;
+  top:68px;
+  right:18px;
+  z-index:60;
+  width:190px;
+  padding:10px 12px;
+  border:1px solid #ffffff18;
+  border-radius:16px;
+  background:linear-gradient(135deg,#151a27ee,#0b0f17ee);
+  backdrop-filter:blur(16px);
+  box-shadow:0 14px 40px #0009,0 0 0 1px #0004;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  overflow:hidden;
+  pointer-events:none;
+  animation:bwIn .55s cubic-bezier(.2,.8,.2,1) both
+}
+
+#batteryWidget:before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:conic-gradient(from 0deg,#8fa7ff00,#63e6e244,#8fa7ff00);
+  animation:bwSpin 5s linear infinite;
+  pointer-events:none
+}
+
+#batteryWidget>*{
+  position:relative;
+  z-index:1
+}
+
+.bwIcon{
+  width:42px;
+  height:24px;
+  border:2px solid #aeb8cc;
+  border-radius:7px;
+  padding:3px;
+  position:relative;
+  flex:0 0 auto;
+  box-shadow:inset 0 0 12px #0008,0 0 12px #8fa7ff18
+}
+
+.bwIcon:after{
+  content:"";
+  position:absolute;
+  right:-5px;
+  top:7px;
+  width:3px;
+  height:8px;
+  border-radius:0 2px 2px 0;
+  background:#aeb8cc
+}
+
+.bwFill{
+  height:100%;
+  width:50%;
+  border-radius:3px;
+  background:linear-gradient(90deg,#63e6e2,#8fa7ff);
+  transform-origin:left center;
+  transition:width .45s ease,background .25s ease;
+  box-shadow:0 0 12px #63e6e266
+}
+
+.bwText{
+  min-width:0;
+  line-height:1.05
+}
+
+.bwPercent{
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:-.2px
+}
+
+.bwStatus{
+  margin-top:3px;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:#8f9ab0
+}
+
+.bwBolt{
+  display:block;
+  flex:0 0 14px;
+  width:14px;
+  height:14px;
+  margin-left:auto;
+  opacity:.8;
+  transform:scale(.9);
+  transition:opacity .25s ease,transform .25s ease;
+  fill:#63e6e2;
+  filter:drop-shadow(0 0 5px #63e6e299)
+}
+
+#batteryWidget.charging .bwBolt{
+  opacity:1;
+  transform:scale(1);
+  animation:bwPulse 1.1s ease-in-out infinite
+}
+
+#batteryWidget.charging .bwFill{
+  background:linear-gradient(90deg,#63e6e2,#71f5d7)
+}
+
+#batteryWidget.low .bwFill{
+  background:linear-gradient(90deg,#ff806c,#ffcc68);
+  box-shadow:0 0 12px #ff806c66
+}
+
+#batteryWidget.full .bwFill{
+  background:linear-gradient(90deg,#63e6e2,#8fa7ff);
+  box-shadow:0 0 12px #63e6e266
+}
+
+@keyframes bwIn{
+  from{opacity:0;transform:translateY(-10px) scale(.96)}
+  to{opacity:1;transform:none}
+}
+
+@keyframes bwSpin{
+  to{transform:rotate(360deg)}
+}
+
+@keyframes bwPulse{
+  0%,100%{filter:drop-shadow(0 0 3px #63e6e255)}
+  50%{
+    filter:drop-shadow(0 0 9px #32dfcfff);
+    transform:scale(1.12)
+  }
+}
+
+/* SCHOOL CLOCK */
+
+#schoolWidget{
+  position:fixed;
+  top:128px;
+  right:18px;
+  z-index:59;
+  width:190px;
+  padding:12px 13px;
+  border:1px solid #ffffff18;
+  border-radius:16px;
+  background:linear-gradient(135deg,#151a27ee,#0b0f17ee);
+  backdrop-filter:blur(16px);
+  box-shadow:0 14px 40px #0009,0 0 0 1px #0004;
+  overflow:hidden;
+  pointer-events:none;
+  animation:swIn .65s .08s cubic-bezier(.2,.8,.2,1) both
+}
+
+#schoolWidget:before{
+  content:"";
+  position:absolute;
+  inset:-70%;
+  background:conic-gradient(from 180deg,#8fa7ff00,#8fa7ff22,#63e6e222,#8fa7ff00);
+  animation:swSpin 9s linear infinite;
+  pointer-events:none
+}
+
+#schoolWidget>*{
+  position:relative;
+  z-index:1
+}
+
+.swTime{
+  font-size:22px;
+  font-weight:950;
+  letter-spacing:-.7px;
+  line-height:1
+}
+
+.swDate{
+  margin-top:5px;
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:1.1px;
+  color:#7f899c
+}
+
+.swRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:11px;
+  padding-top:10px;
+  border-top:1px solid #ffffff0b
+}
+
+.swPeriod{
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap
+}
+
+.swLeft{
+  font-size:10px;
+  color:#aeb6c8;
+  text-align:right;
+  white-space:nowrap
+}
+
+.swAccent{
+  color:#63e6e2
+}
+
+.swProgressWrap{
+  position:relative;
+  margin-top:11px;
+  height:4px;
+  border-radius:999px;
+  overflow:hidden;
+  background:#ffffff0b;
+  border:1px solid #ffffff06
+}
+
+.swProgress{
+  width:0%;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#8fa7ff,#63e6e2);
+  box-shadow:0 0 12px #63e6e255;
+  transition:width .8s linear
+}
+
+.swProgressShine{
+  position:absolute;
+  inset:0;
+  width:35%;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #ffffff33,
+    transparent
+  );
+  filter:blur(2px);
+  animation:swShine 2s linear infinite
+}
+
+#schoolWidget.out .swPeriod{
+  color:#aeb6c8
+}
+
+#schoolWidget.out .swLeft{
+  color:#727d91
+}
+
+#schoolWidget.out .swProgress{
+  width:0!important;
+  opacity:.25
+}
+
+/* SCHEDULE DROPDOWN */
+.swScheduleToggle{
+  margin-top:10px;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:7px 8px;
+  border:1px solid #ffffff0c;
+  border-radius:9px;
+  background:#ffffff05;
+  color:#aeb6c8;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.5px;
+  cursor:pointer
+}
+
+.swScheduleToggle:hover{
+  background:#ffffff0a;
+  border-color:#ffffff18;
+  color:#dfe5f2
+}
+
+.swScheduleChevron{
+  transition:transform .18s ease;
+}
+
+#schoolWidget.scheduleOpen .swScheduleChevron{
+  transform:rotate(180deg);
+}
+
+.swSchedule{
+  display:none;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid #ffffff0b;
+}
+
+#schoolWidget.scheduleOpen .swSchedule{
+  display:block;
+}
+
+.swScheduleItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:5px 0;
+  font-size:8.5px;
+  color:#8f9ab0
+}
+
+.swScheduleItem.active{
+  color:#fff
+}
+
+.swScheduleName{
+  font-weight:800;
+  white-space:nowrap
+}
+
+.swScheduleTime{
+  white-space:nowrap;
+  color:#697489
+}
+
+.swScheduleItem.active .swScheduleName{
+  color:#63e6e2
+}
+
+@keyframes swIn{
+  from{
+    opacity:0;
+    transform:translateY(-10px) scale(.97)
+  }
+  to{
+    opacity:1;
+    transform:none
+  }
+}
+
+@keyframes swSpin{
+  to{transform:rotate(360deg)}
+}
+
+@keyframes swShine{
+  from{transform:translateX(-130%)}
+  to{transform:translateX(400%)}
+}
+
+
+
+/* GRADEPILOT SYSTEM WIDGET LAYOUT */
+.system-widgets {
+  height: 0;
+  position: relative;
+  z-index: 30;
+}
+#batteryWidget, #schoolWidget {
+  pointer-events: auto;
+}
+#schoolWidget {
+  cursor: default;
+}
+#batteryWidget {
+  cursor: default;
+}
+.swScheduleToggle {
+  color: #c3cee5;
+}
+.swScheduleItem.active .swScheduleName {
+  color: var(--cyan);
+}
+.swAccent {
+  color: var(--cyan);
+}
+.swProgress {
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+}
+.bwFill {
+  background: linear-gradient(90deg, var(--cyan), var(--blue));
+}
+#batteryWidget.charging .bwFill {
+  background: linear-gradient(90deg, var(--cyan), #9af5df);
+}
+@media (max-width: 720px) {
+  .system-widgets {
+    height: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 9px;
+    margin: 0 0 20px;
+  }
+  #batteryWidget, #schoolWidget {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: calc(50% - 4.5px);
+    max-width: 190px;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+  #batteryWidget {
+    padding: 9px 10px;
+    gap: 8px;
+  }
+  .bwIcon {
+    width: 35px;
+    height: 22px;
+  }
+  .bwPercent {
+    font-size: 14px;
+  }
+  .bwStatus {
+    font-size: 8px;
+    letter-spacing: .6px;
+  }
+  #schoolWidget {
+    padding: 10px 10px;
+  }
+  .swTime {
+    font-size: 19px;
+  }
+  .swDate {
+    font-size: 8px;
+  }
+  .swRow {
+    gap: 5px;
+  }
+  .swPeriod {
+    font-size: 10px;
+  }
+  .swLeft {
+    font-size: 9px;
+  }
+  .swScheduleToggle {
+    font-size: 8px;
+    padding: 7px 6px;
+  }
+}
+@media (max-width: 390px) {
+  .system-widgets {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  #batteryWidget, #schoolWidget {
+    width: min(190px, 100%);
+    flex: 0 1 auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #loadingScreen, #loadingScreen *, #batteryWidget, #batteryWidget *,
+  #schoolWidget, #schoolWidget *, .swProgress {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+    /* CHROMEBOOK LANDSCAPE FIT */
+    .shell {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "topbar widgets"
+        "hero hero"
+        "dashboard dashboard"
+        "categories categories"
+        "assignment assignment"
+        "footer footer";
+      column-gap: 14px;
+      align-content: start;
+    }
+    .gp-document {
+      min-height: 100vh;
+      min-height: 100svh;
+      padding: 10px 24px 10px;
+      overflow-x: hidden;
+    }
+    .topbar {
+      grid-area: topbar;
+      min-width: 0;
+      align-self: center;
+      margin: 0;
+    }
+    .system-widgets {
+      grid-area: widgets;
+      height: auto;
+      position: relative;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 0;
+    }
+    #batteryWidget, #schoolWidget {
+      position: relative;
+      top: auto;
+      right: auto;
+      flex: 0 0 auto;
+      pointer-events: auto;
+      margin: 0;
+    }
+    #batteryWidget {
+      width: 176px;
+      padding: 8px 10px;
+      gap: 8px;
+    }
+    .bwIcon { width: 35px; height: 22px; }
+    .bwIcon:after { top: 6px; }
+    .bwPercent { font-size: 14px; }
+    .bwStatus { font-size: 8px; letter-spacing: .6px; }
+    .bwBolt { width: 12px; height: 12px; }
+    #schoolWidget {
+      width: 190px;
+      padding: 9px 10px;
+      z-index: 50;
+      overflow: visible;
+      isolation: isolate;
+    }
+    #schoolWidget:before {
+      inset: 0;
+      border-radius: inherit;
+      z-index: -1;
+    }
+    .swTime { font-size: 19px; }
+    .swDate { font-size: 8px; margin-top: 4px; letter-spacing: .8px; }
+    .swRow { margin-top: 7px; padding-top: 6px; gap: 5px; }
+    .swPeriod { font-size: 10px; }
+    .swLeft { font-size: 9px; }
+    .swProgressWrap { margin-top: 7px; }
+    .swScheduleToggle {
+      margin-top: 6px;
+      padding: 5px 7px;
+      font-size: 8px;
+    }
+    .swSchedule {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 100;
+      max-height: 190px;
+      overflow-y: auto;
+      margin: 0;
+      padding: 8px 11px;
+      border: 1px solid #ffffff18;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #151b2a, #0b101b);
+      box-shadow: 0 16px 42px #000b;
+    }
+    .swScheduleItem { padding: 4px 0; font-size: 8px; }
+    .hero {
+      grid-area: hero;
+      margin: 7px 0 10px;
+    }
+    .eyebrow { font-size: 10px; margin-bottom: 7px; }
+    h1 { font-size: clamp(34px, 3.6vw, 48px); line-height: .96; }
+    .subtitle {
+      max-width: 760px;
+      font-size: 12px;
+      line-height: 1.42;
+      margin-top: 8px;
+    }
+    .dashboard {
+      grid-area: dashboard;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    }
+    .current-panel, .projection-panel { padding: 16px 18px; }
+    .current-panel { gap: 12px; }
+    .grade-entry { gap: 12px; }
+    .grade-input-wrap { min-width: 150px; }
+    .grade-input { font-size: clamp(42px, 4.2vw, 54px); }
+    .helper { font-size: 10px; margin-top: 6px; }
+    .current-chip { padding: 9px 11px; }
+    .projection-panel { min-height: 145px; }
+    .projected-number { font-size: clamp(50px, 5vw, 64px); margin: 15px 0 8px; }
+    .section {
+      grid-area: categories;
+      margin-top: 12px;
+      padding: 13px 18px;
+    }
+    .section-title-row { margin-bottom: 10px; }
+    h2 { font-size: 15px; }
+    .section-desc { font-size: 10px; margin-top: 3px; }
+    .category-list { gap: 9px; }
+    .category { padding: 10px 12px; }
+    .category-name { font-size: 11px; }
+    .category-weight { font-size: 14px; }
+    .assignment-section {
+      grid-area: assignment;
+      margin-top: 12px;
+      padding: 13px 18px 15px;
+    }
+    .assignment-section .section-title-row { margin-bottom: 10px; }
+    .assignment-controls {
+      grid-template-columns: minmax(190px, .8fr) minmax(0, 1.2fr);
+      gap: 18px;
+    }
+    .field-label { font-size: 11px; margin-bottom: 7px; }
+    .select-input { padding: 9px 11px; font-size: 11px; }
+    .slider-heading { margin-bottom: 7px; }
+    .slider-value { font-size: 17px; }
+    .range-labels { font-size: 9px; }
+    .footer-note {
+      grid-area: footer;
+      margin: 9px auto 0;
+      font-size: 9px;
+    }
+
+    /* Most Chromebooks have a relatively short browser viewport in landscape. */
+    @media (min-width: 901px) and (max-height: 740px) {
+      .gp-document { padding-top: 7px; padding-bottom: 7px; }
+      .hero { margin-top: 4px; margin-bottom: 8px; }
+      h1 { font-size: clamp(32px, 3.2vw, 42px); }
+      .subtitle { font-size: 11px; line-height: 1.32; margin-top: 6px; }
+      .dashboard { gap: 10px; }
+      .current-panel, .projection-panel { padding: 13px 16px; }
+      .projection-panel { min-height: 128px; }
+      .projected-number { font-size: 54px; margin: 11px 0 6px; }
+      .section { margin-top: 9px; padding: 10px 16px; }
+      .section-title-row { margin-bottom: 7px; }
+      .category { padding: 8px 10px; }
+      .assignment-section { margin-top: 9px; padding: 10px 16px 12px; }
+      .assignment-section .section-title-row { margin-bottom: 7px; }
+      .assignment-controls { gap: 15px; }
+      .select-input { padding: 8px 10px; }
+      .footer-note { margin-top: 6px; }
+    }
+    @media (min-width: 901px) and (max-height: 640px) {
+      .gp-document { padding-top: 5px; padding-bottom: 5px; }
+      .hero { margin: 2px 0 6px; }
+      .eyebrow { margin-bottom: 4px; }
+      h1 { font-size: 32px; }
+      .subtitle { font-size: 10px; line-height: 1.25; margin-top: 4px; }
+      .current-panel, .projection-panel { padding: 10px 14px; }
+      .projection-panel { min-height: 112px; }
+      .projected-number { font-size: 46px; margin: 8px 0 5px; }
+      .section { margin-top: 7px; padding: 8px 14px; }
+      .category { padding: 6px 9px; }
+      .assignment-section { margin-top: 7px; padding: 8px 14px 10px; }
+      .footer-note { margin-top: 4px; }
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        width: min(760px, 100%);
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+          "topbar"
+          "widgets"
+          "hero"
+          "dashboard"
+          "categories"
+          "assignment"
+          "footer";
+      }
+      .topbar { margin-bottom: 7px; }
+      .system-widgets { justify-content: flex-start; margin-bottom: 9px; }
+      .hero { margin: 4px 0 10px; }
+      .section, .assignment-section { margin-top: 10px; }
+    }
+    @media (max-width: 720px) {
+      .gp-document { padding: 16px 13px 28px; }
+      .dashboard { grid-template-columns: 1fr; }
+      .category-list { grid-template-columns: 1fr; }
+      .assignment-controls { grid-template-columns: 1fr; gap: 14px; }
+      .current-panel, .projection-panel { padding: 16px; }
+      .section, .assignment-section { padding: 14px 16px; }
+      .current-chip { min-width: 0; }
+    }
+    @media (max-width: 520px) {
+      .topbar { margin-bottom: 6px; }
+      .top-note { display: none; }
+      .system-widgets { gap: 7px; }
+      #batteryWidget, #schoolWidget { width: calc(50% - 3.5px); min-width: 0; }
+      #batteryWidget { padding: 8px; gap: 6px; }
+      .bwIcon { width: 30px; height: 20px; }
+      .bwPercent { font-size: 13px; }
+      .bwStatus { font-size: 7px; letter-spacing: .2px; }
+      #schoolWidget { padding: 8px; }
+      .swTime { font-size: 17px; }
+      .swRow { flex-wrap: wrap; }
+      .swLeft { white-space: normal; }
+      h1 { font-size: clamp(32px, 8vw, 40px); }
+      .subtitle { font-size: 11px; }
+      .grade-entry { align-items: flex-start; }
+      .current-chip { min-width: 100%; }
+    }
+    @media (max-width: 360px) {
+      .system-widgets { flex-direction: column; align-items: stretch; }
+      #batteryWidget, #schoolWidget { width: 100%; }
+    }
+
+
+    /* FINAL FIXES: detached schedule popover + clipped circular clock glow */
+    #schoolWidget {
+      position: relative;
+      isolation: isolate;
+      overflow: visible;
+    }
+    #schoolWidget:before {
+      content: none !important;
+      animation: none !important;
+    }
+    #schoolWidget .swGlow {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    #schoolWidget .swGlow:before {
+      content: "";
+      position: absolute;
+      width: 170%;
+      height: 170%;
+      left: -35%;
+      top: -35%;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        color-mix(in srgb, var(--cyan) 30%, transparent) 65deg,
+        transparent 135deg,
+        color-mix(in srgb, var(--blue) 30%, transparent) 220deg,
+        transparent 300deg,
+        color-mix(in srgb, var(--cyan) 20%, transparent) 340deg,
+        transparent 360deg
+      );
+      filter: blur(19px);
+      opacity: .8;
+      animation: swSpin 7s linear infinite;
+    }
+    #schoolWidget > :not(.swGlow) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Schedule dropdown: absolute inside the clock widget, so it floats over
+       the dashboard without moving the page or relying on fixed SVG positioning. */
+    #schoolWidget { position: relative; overflow: visible; }
+    .swSchedule {
+      display: none;
+      position: absolute !important;
+      top: calc(100% + 7px);
+      left: 0;
+      right: 0;
+      z-index: 1200;
+      width: 100%;
+      max-height: min(250px, calc(100vh - 24px));
+      overflow-y: auto;
+      margin: 0 !important;
+      padding: 9px 11px;
+      border: 1px solid #ffffff18;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #151b2a, #0b101b);
+      box-shadow: 0 16px 42px #000b;
+      overscroll-behavior: contain;
+    }
+    .swSchedule.open { display: block; }
+
+
+
+/* SVG document viewport + scroll container */
+.gp-document { height:100%; min-height:100vh; overflow-x:hidden; overflow-y:auto; }
+.gp-document, .gp-document * { box-sizing:border-box; }
+
+/* MATCHED, LARGER SCHOOL + DEVICE WIDGETS */
+.system-widgets {
+  align-items: stretch;
+  gap: 12px;
+}
+#batteryWidget, #schoolWidget {
+  width: 220px;
+  height: 156px;
+  min-height: 156px;
+  flex: 0 0 220px;
+  padding: 15px 16px;
+  border: 1px solid #ffffff18;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #151a27ee, #0b0f17ee);
+  box-shadow: 0 14px 40px #0009, 0 0 0 1px #0004;
+}
+
+/* Battery card now uses the same header / content / progress hierarchy. */
+#batteryWidget {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 10px;
+}
+.bwHeading, .swPeriodHeading {
+  color: #9aa8c4;
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 850;
+  letter-spacing: 1.25px;
+}
+.bwMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.bwIcon {
+  width: 48px;
+  height: 29px;
+  padding: 4px;
+  border-radius: 8px;
+}
+.bwIcon:after {
+  top: 8px;
+  height: 9px;
+}
+.bwText { line-height: 1.08; }
+.bwPercent {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -.7px;
+}
+.bwStatus {
+  margin-top: 4px;
+  font-size: 8px;
+  letter-spacing: .75px;
+}
+.bwBolt {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+}
+.bwLevelTrack {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ffffff0b;
+  border: 1px solid #ffffff06;
+}
+.bwLevel {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  box-shadow: 0 0 12px #63e6e255;
+  transition: width .45s ease, background .25s ease;
+}
+#batteryWidget.low .bwLevel {
+  background: linear-gradient(90deg, #ff806c, #ffcc68);
+}
+#batteryWidget.charging .bwLevel {
+  background: linear-gradient(90deg, var(--cyan), #9af5df);
+}
+
+/* Make the live period the most visible piece of the school clock. */
+#schoolWidget {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0;
+}
+.swTime {
+  font-size: 25px;
+  line-height: 1.05;
+  letter-spacing: -.8px;
+}
+.swDate {
+  margin-top: 5px;
+  font-size: 9px;
+  letter-spacing: .9px;
+}
+.swPeriodHeading { margin-top: 11px; }
+.swRow {
+  margin-top: 4px;
+  padding-top: 7px;
+  gap: 7px;
+}
+.swPeriod {
+  font-size: 16px;
+  font-weight: 900;
+}
+.swLeft { font-size: 9px; }
+.swProgressWrap { margin-top: 9px; height: 5px; }
+.swScheduleToggle {
+  margin-top: 9px;
+  padding: 7px 9px;
+  font-size: 9px;
+}
+
+@media (max-width: 900px) {
+  .system-widgets {
+    width: 100%;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 12px;
+  }
+  #batteryWidget, #schoolWidget {
+    width: calc(50% - 6px);
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+}
+@media (max-width: 520px) {
+  #batteryWidget, #schoolWidget {
+    height: 150px;
+    min-height: 150px;
+    padding: 12px;
+  }
+  .bwMain { gap: 8px; }
+  .bwIcon { width: 39px; height: 25px; }
+  .bwIcon:after { top: 7px; height: 8px; }
+  .bwPercent { font-size: 21px; }
+  .bwStatus { font-size: 7px; letter-spacing: .35px; }
+  .bwHeading, .swPeriodHeading { font-size: 8px; letter-spacing: .8px; }
+  .swTime { font-size: 21px; }
+  .swPeriod { font-size: 14px; }
+  .swLeft { font-size: 8px; }
+  .swScheduleToggle { font-size: 8px; padding: 6px 7px; }
+}
+@media (max-width: 360px) {
+  .system-widgets { flex-direction: column; align-items: stretch; }
+  #batteryWidget, #schoolWidget {
+    width: 100%;
+    height: 142px;
+    min-height: 142px;
+    flex: 0 0 auto;
+  }
+}
+
+
+/* FINAL RESPONSIVE WIDGET REFINEMENT — balanced sizing, no clipped controls */
+.system-widgets {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+#batteryWidget, #schoolWidget {
+  width: 232px;
+  min-width: 0;
+  height: auto;
+  min-height: 188px;
+  flex: 0 0 232px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 19px;
+  background: linear-gradient(145deg, rgba(23,31,50,.98), rgba(10,15,27,.98));
+  box-shadow: 0 15px 38px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.035);
+  overflow: visible;
+}
+
+/* Chromebook battery */
+#batteryWidget {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0;
+  isolation: isolate;
+}
+.bwHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  color: #aebbd3;
+  font-size: 9px;
+  line-height: 1.25;
+  font-weight: 850;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.bwSourceTag {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  border: 1px solid rgba(99,230,226,.18);
+  border-radius: 999px;
+  color: var(--cyan);
+  background: rgba(99,230,226,.07);
+  font-size: 7px;
+  letter-spacing: .65px;
+}
+#batteryWidget.unavailable .bwSourceTag {
+  color: #aab4c7;
+  border-color: rgba(170,180,199,.2);
+  background: rgba(170,180,199,.07);
+}
+.bwMain {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  margin-top: 22px;
+}
+.bwIcon {
+  position: relative;
+  flex: 0 0 53px;
+  width: 53px;
+  height: 33px;
+  padding: 4px;
+  border: 2px solid #aebbd0;
+  border-radius: 8px;
+  background: rgba(255,255,255,.035);
+  box-shadow: inset 0 0 12px rgba(0,0,0,.35), 0 0 16px rgba(143,167,255,.08);
+}
+.bwIcon:after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 9px;
+  width: 4px;
+  height: 11px;
+  border-radius: 0 3px 3px 0;
+  background: #aebbd0;
+}
+.bwFill {
+  width: 50%;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #63e6e2, #8fa7ff);
+  box-shadow: 0 0 12px rgba(99,230,226,.35);
+  transition: width .4s ease, background .25s ease;
+}
+.bwUnknown {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  color: #bdc8de;
+  font-size: 17px;
+  font-weight: 850;
+}
+#batteryWidget.unavailable .bwFill { display: none; }
+#batteryWidget.unavailable .bwUnknown { display: flex; }
+#batteryWidget.unavailable .bwBolt { display: none; }
+.bwText { min-width: 0; line-height: 1.05; }
+.bwPercent {
+  color: #f3f7ff;
+  font-size: 29px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+.bwStatus {
+  margin-top: 5px;
+  color: #9ba9c2;
+  font-size: 9px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: .45px;
+  text-transform: uppercase;
+}
+.bwBolt {
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  fill: var(--cyan);
+  opacity: .55;
+  transition: opacity .2s ease, transform .2s ease;
+}
+#batteryWidget.charging .bwBolt {
+  opacity: 1;
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 6px rgba(99,230,226,.45));
+}
+#batteryWidget.charging .bwFill { background: linear-gradient(90deg, #63e6e2, #9af5df); }
+#batteryWidget.low .bwFill { background: linear-gradient(90deg, #ff806c, #ffcc68); }
+.bwLevelMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 20px;
+  color: #8291ab;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 1px;
+}
+#bwLevelValue { color: #d7e2f7; font-size: 9px; letter-spacing: .2px; }
+.bwLevelTrack {
+  width: 100%;
+  height: 7px;
+  margin-top: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 999px;
+  background: rgba(255,255,255,.075);
+}
+.bwLevel {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8fa7ff, #63e6e2);
+  box-shadow: 0 0 12px rgba(99,230,226,.3);
+  transition: width .4s ease;
+}
+#batteryWidget.low .bwLevel { background: linear-gradient(90deg, #ff806c, #ffcc68); }
+#batteryWidget.charging .bwLevel { background: linear-gradient(90deg, #63e6e2, #9af5df); }
+.bwUnavailable {
+  margin-top: auto;
+  padding: 10px 11px;
+  border: 1px solid rgba(170,180,199,.12);
+  border-radius: 11px;
+  color: #aab6cb;
+  background: rgba(255,255,255,.035);
+  font-size: 9px;
+  line-height: 1.45;
+}
+#batteryWidget.unavailable .bwLevelMeta,
+#batteryWidget.unavailable .bwLevelTrack { display: none; }
+#batteryWidget:not(.unavailable) .bwUnavailable { display: none; }
+
+/* School clock: larger time-left type and a button that always has room */
+#schoolWidget {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+#schoolWidget .swTime {
+  color: #f4f7ff;
+  font-size: 27px;
+  line-height: 1.05;
+  font-weight: 950;
+  letter-spacing: -1px;
+}
+#schoolWidget .swDate {
+  margin-top: 5px;
+  color: #8998b2;
+  font-size: 9px;
+  line-height: 1.3;
+  letter-spacing: .9px;
+}
+#schoolWidget .swPeriodHeading {
+  margin-top: 14px;
+  color: #91a2bf;
+  font-size: 8px;
+  line-height: 1.2;
+  font-weight: 850;
+  letter-spacing: 1.15px;
+}
+#schoolWidget .swRow {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 0;
+  border-top: 0;
+}
+#schoolWidget .swPeriod {
+  min-width: 0;
+  color: #eaf2ff;
+  font-size: 16px;
+  line-height: 1.15;
+  font-weight: 900;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#schoolWidget .swLeft {
+  min-width: 0;
+  color: #d1dcef;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 850;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#schoolWidget.out .swLeft { color: #aeb9cd; }
+#schoolWidget .swProgressWrap {
+  height: 6px;
+  margin-top: 10px;
+  flex: 0 0 6px;
+}
+#schoolWidget .swScheduleToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  height: auto;
+  flex: 0 0 auto;
+  margin-top: 12px;
+  padding: 8px 11px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 11px;
+  color: #d8e3f5;
+  background: rgba(255,255,255,.045);
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 850;
+  letter-spacing: .45px;
+  white-space: nowrap;
+  overflow: visible;
+  cursor: pointer;
+}
+#schoolWidget .swScheduleToggle:hover,
+#schoolWidget .swScheduleToggle:focus-visible {
+  color: #fff;
+  border-color: rgba(99,230,226,.42);
+  background: rgba(99,230,226,.08);
+  outline: none;
+}
+#schoolWidget .swSchedule {
+  position: absolute !important;
+  top: calc(100% + 7px);
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  width: 100%;
+  max-height: min(250px, calc(100vh - 24px));
+  overflow-y: auto;
+  margin: 0 !important;
+  padding: 9px 11px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #151b2a, #0b101b);
+  box-shadow: 0 16px 42px rgba(0,0,0,.72);
+  overscroll-behavior: contain;
+}
+#schoolWidget .swScheduleItem { padding: 6px 0; font-size: 9px; }
+#schoolWidget .swScheduleTime { font-size: 9px; }
+
+@media (max-width: 900px) {
+  .system-widgets {
+    width: 100%;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 12px;
+  }
+  #batteryWidget, #schoolWidget {
+    width: calc(50% - 6px);
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+}
+@media (max-width: 520px) {
+  #batteryWidget, #schoolWidget {
+    min-height: 188px;
+    padding: 12px 11px;
+    border-radius: 16px;
+  }
+  .bwHeading { font-size: 7.5px; letter-spacing: .65px; gap: 4px; }
+  .bwSourceTag { padding: 3px 4px; font-size: 6px; letter-spacing: .3px; }
+  .bwMain { gap: 8px; margin-top: 20px; }
+  .bwIcon { flex-basis: 42px; width: 42px; height: 28px; }
+  .bwIcon:after { top: 7px; height: 10px; }
+  .bwPercent { font-size: 24px; }
+  .bwStatus { font-size: 7px; letter-spacing: .2px; }
+  .bwLevelMeta { padding-top: 17px; font-size: 7px; }
+  .bwUnavailable { font-size: 8px; padding: 8px; }
+  #schoolWidget .swTime { font-size: 23px; }
+  #schoolWidget .swPeriodHeading { margin-top: 13px; font-size: 7px; }
+  #schoolWidget .swPeriod { font-size: 14px; }
+  #schoolWidget .swLeft { font-size: 11px; }
+  #schoolWidget .swScheduleToggle { min-height: 35px; margin-top: 11px; padding: 7px 8px; font-size: 8px; }
+}
+@media (max-width: 360px) {
+  .system-widgets { flex-direction: column; align-items: stretch; }
+  #batteryWidget, #schoolWidget {
+    width: 100%;
+    min-height: 191px;
+    flex: 0 0 auto;
+  }
+  .bwMain { margin-top: 16px; }
+}
+
+
+
+/* Prevent the legacy battery halo from painting outside its card. */
+#batteryWidget:before {
+  content: none !important;
+  animation: none !important;
+}
+/* On compact layouts, give the active period and countdown their own lines. */
+@media (max-width: 520px) {
+  #schoolWidget .swRow {
+    grid-template-columns: minmax(0,1fr);
+    gap: 3px;
+    align-items: start;
+  }
+  #schoolWidget .swPeriod { font-size: 15px; }
+  #schoolWidget .swLeft {
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+}
+
+
+@media (min-width: 361px) and (max-width: 390px) {
+  .system-widgets {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+  #batteryWidget, #schoolWidget {
+    width: calc(50% - 6px);
+    flex: 1 1 0;
+  }
+}
+
+]]></xhtml:style>
+
+<xhtml:div id="loadingScreen" role="status" aria-label="Loading GradePilot">
+<xhtml:div class="loaderGlow"/>
+<xhtml:div class="loaderRing"/>
+<xhtml:div class="loaderRing2"/>
+<xhtml:div class="loaderLogo">✳</xhtml:div>
+<xhtml:div class="loaderBrand">GRADEPILOT</xhtml:div>
+<xhtml:div class="loaderSub">GRADE FORECASTING</xhtml:div>
+<xhtml:div class="loaderLine">
+<xhtml:div class="loaderProgress"/>
+</xhtml:div>
+<xhtml:div class="loaderStatus" id="loaderStatus">PREPARING YOUR GRADE DASHBOARD...</xhtml:div>
+</xhtml:div>
+<xhtml:main class="shell">
+<xhtml:header class="topbar">
+<xhtml:div class="brand"><xhtml:div class="brand-mark">✳</xhtml:div><xhtml:div>GRADEPILOT<xhtml:small>WHAT-IF GRADE CALCULATOR</xhtml:small></xhtml:div></xhtml:div>
+<xhtml:div class="top-note">✦ Plan ahead. Know your numbers.</xhtml:div>
+</xhtml:header>
+<xhtml:div class="system-widgets" aria-label="Device and school information">
+
+<xhtml:div id="batteryWidget" aria-live="polite" title="Chromebook battery">
+<xhtml:div class="bwHeading"><xhtml:span>CHROMEBOOK BATTERY</xhtml:span><xhtml:span class="bwSourceTag" id="bwSourceTag">CHECKING</xhtml:span></xhtml:div>
+<xhtml:div class="bwMain">
+<xhtml:div class="bwIcon" aria-hidden="true">
+<xhtml:div class="bwFill" id="bwFill"/>
+<xhtml:span class="bwUnknown">?</xhtml:span>
+</xhtml:div>
+<xhtml:div class="bwText">
+<xhtml:div class="bwPercent" id="bwPercent">--%</xhtml:div>
+<xhtml:div class="bwStatus" id="bwStatus">Checking battery</xhtml:div>
+</xhtml:div>
+<svg xmlns="http://www.w3.org/2000/svg" class="bwBolt" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+<path d="M13.5 2 5 13h6l-1.5 9L19 10h-6z"/>
+</svg>
+</xhtml:div>
+<xhtml:div class="bwLevelMeta"><xhtml:span>POWER LEVEL</xhtml:span><xhtml:span id="bwLevelValue">--%</xhtml:span></xhtml:div>
+<xhtml:div class="bwLevelTrack" aria-hidden="true"><xhtml:div class="bwLevel" id="bwLevel"/></xhtml:div>
+<xhtml:div class="bwUnavailable" id="bwUnavailable" hidden="hidden">Live battery readings aren't available in this browser.</xhtml:div>
+</xhtml:div>
+
+<xhtml:div id="schoolWidget" aria-live="polite" title="School schedule">
+<xhtml:div class="swGlow" aria-hidden="true"/>
+<xhtml:div class="swTime" id="swTime">--:-- --</xhtml:div>
+<xhtml:div class="swDate" id="swDate">School schedule</xhtml:div>
+<xhtml:div class="swPeriodHeading">CURRENT PERIOD</xhtml:div>
+<xhtml:div class="swRow">
+<xhtml:div class="swPeriod" id="swPeriod">--</xhtml:div>
+<xhtml:div class="swLeft" id="swLeft">--</xhtml:div>
+</xhtml:div>
+<xhtml:div class="swProgressWrap">
+<xhtml:div class="swProgress" id="swProgress"/>
+<xhtml:div class="swProgressShine"/>
+</xhtml:div>
+<xhtml:button class="swScheduleToggle" id="swScheduleToggle" type="button" aria-expanded="false">
+<xhtml:span>View schedule</xhtml:span>
+<xhtml:span class="swScheduleChevron" aria-hidden="true">▾</xhtml:span>
+</xhtml:button>
+<xhtml:div class="swSchedule" id="swSchedule" aria-hidden="true">
+<xhtml:div class="swScheduleItem" data-period="Period 1"><xhtml:span class="swScheduleName">Period 1</xhtml:span><xhtml:span class="swScheduleTime">7:22 AM–8:08 AM</xhtml:span></xhtml:div>
+<xhtml:div class="swScheduleItem" data-period="Period 2"><xhtml:span class="swScheduleName">Period 2</xhtml:span><xhtml:span class="swScheduleTime">8:12 AM–8:59 AM</xhtml:span></xhtml:div>
+<xhtml:div class="swScheduleItem" data-period="Period 3"><xhtml:span class="swScheduleName">Period 3</xhtml:span><xhtml:span class="swScheduleTime">9:03 AM–9:50 AM</xhtml:span></xhtml:div>
+<xhtml:div class="swScheduleItem" data-period="Period 4"><xhtml:span class="swScheduleName">Period 4</xhtml:span><xhtml:span class="swScheduleTime">9:54 AM–10:41 AM</xhtml:span></xhtml:div>
+<xhtml:div class="swScheduleItem" data-period="Period 5"><xhtml:span class="swScheduleName">Period 5</xhtml:span><xhtml:span class="swScheduleTime">10:46 AM–12:02 PM</xhtml:span></xhtml:div>
+<xhtml:div class="swScheduleItem" data-period="Period 6"><xhtml:span class="swScheduleName">Period 6</xhtml:span><xhtml:span class="swScheduleTime">12:08 PM–12:52 PM</xhtml:span></xhtml:div>
+<xhtml:div class="swScheduleItem" data-period="Period 7"><xhtml:span class="swScheduleName">Period 7</xhtml:span><xhtml:span class="swScheduleTime">12:56 PM–1:43 PM</xhtml:span></xhtml:div>
+</xhtml:div>
+</xhtml:div>
+</xhtml:div>
+<xhtml:section class="hero">
+<xhtml:div class="eyebrow">Your grades, in real time</xhtml:div>
+<xhtml:h1>See what one grade<xhtml:br/><xhtml:span>could change.</xhtml:span></xhtml:h1>
+<xhtml:p class="subtitle">Enter your current grade, choose an assignment category, and move the slider to see how that score could change your overall grade.</xhtml:p>
+</xhtml:section>
+<xhtml:section class="dashboard" aria-label="Grade overview">
+<xhtml:div class="panel current-panel">
+<xhtml:div class="panel-heading"><xhtml:div class="section-kicker">Your starting point</xhtml:div><xhtml:div class="step-tag">CURRENT GRADE</xhtml:div></xhtml:div>
+<xhtml:div class="grade-entry">
+<xhtml:div class="grade-input-wrap">
+<xhtml:label class="field-label" for="currentGrade">Your current overall grade</xhtml:label>
+<xhtml:div class="grade-input-row"><xhtml:input id="currentGrade" class="grade-input" type="number" min="0" max="100" step="0.1" placeholder="—" inputmode="decimal" aria-label="Current overall grade"/><xhtml:span class="percent">%</xhtml:span></xhtml:div>
+<xhtml:div class="helper">Enter the grade currently shown in your class gradebook.</xhtml:div>
+</xhtml:div>
+<xhtml:div class="current-chip"><xhtml:strong id="currentLetter">—</xhtml:strong><xhtml:span>Current letter grade</xhtml:span></xhtml:div>
+</xhtml:div>
+</xhtml:div>
+<xhtml:div class="panel projection-panel" aria-live="polite">
+<xhtml:div class="live-indicator"><xhtml:span class="live-dot"/> Live projection</xhtml:div>
+<xhtml:div>
+<xhtml:div class="projected-number" id="projectedGrade">—<xhtml:em>%</xhtml:em></xhtml:div>
+<xhtml:div class="projection-bottom"><xhtml:div class="delta" id="gradeDelta">Enter your current grade</xhtml:div><xhtml:div class="letter-grade" id="projectedLetter">Projected: —</xhtml:div></xhtml:div>
+</xhtml:div>
+</xhtml:div>
+</xhtml:section>
+<xhtml:section class="panel section" aria-labelledby="categoriesTitle">
+<xhtml:div class="section-title-row"><xhtml:div><xhtml:h2 id="categoriesTitle">Grade categories</xhtml:h2><xhtml:div class="section-desc">Your class grade is weighted using these categories.</xhtml:div></xhtml:div></xhtml:div>
+<xhtml:div class="category-list">
+<xhtml:div class="category"><xhtml:span class="category-name">Major</xhtml:span><xhtml:span class="category-weight">60%</xhtml:span></xhtml:div>
+<xhtml:div class="category"><xhtml:span class="category-name">Minor</xhtml:span><xhtml:span class="category-weight">30%</xhtml:span></xhtml:div>
+<xhtml:div class="category"><xhtml:span class="category-name">Practice &amp; Engagement</xhtml:span><xhtml:span class="category-weight">10%</xhtml:span></xhtml:div>
+</xhtml:div>
+</xhtml:section>
+<xhtml:section class="panel assignment-section" aria-labelledby="assignmentTitle">
+<xhtml:div class="section-title-row"><xhtml:div><xhtml:h2 id="assignmentTitle">Try a new assignment</xhtml:h2><xhtml:div class="section-desc">Choose its category and predicted score. Your overall grade updates instantly.</xhtml:div></xhtml:div><xhtml:div class="step-tag">WHAT-IF</xhtml:div></xhtml:div>
+<xhtml:div class="assignment-controls">
+<xhtml:div>
+<xhtml:label class="field-label" for="assignmentCategory">Grade category</xhtml:label>
+<xhtml:select class="select-input" id="assignmentCategory">
+<xhtml:option value="major">Major · 60%</xhtml:option>
+<xhtml:option value="minor">Minor · 30%</xhtml:option>
+<xhtml:option value="practice">Practice &amp; Engagement · 10%</xhtml:option>
+</xhtml:select>
+</xhtml:div>
+<xhtml:div>
+<xhtml:div class="slider-heading"><xhtml:label class="field-label" for="assignmentScore" style="margin:0">Your predicted score</xhtml:label><xhtml:div class="slider-value" id="scoreLabel">85%</xhtml:div></xhtml:div>
+<xhtml:input id="assignmentScore" type="range" min="0" max="100" step="1" value="85"/>
+<xhtml:div class="range-labels"><xhtml:span>0% · No credit</xhtml:span><xhtml:span>100% · Perfect</xhtml:span></xhtml:div>
+</xhtml:div>
+</xhtml:div>
+</xhtml:section>
+<xhtml:p class="footer-note">Built and published by Youssef El Bouabidi.</xhtml:p>
+</xhtml:main>
+
+
+
+
+
+
+
+</xhtml:div>
+  </foreignObject>
+  <script type="application/ecmascript"><![CDATA[
+    (() => {
+      const $ = id => document.getElementById(id);
+      const weights = { major: 0.60, minor: 0.30, practice: 0.10 };
+
+      function letterGrade(value) {
+        if (!Number.isFinite(value)) return '—';
+        if (value >= 97) return 'A+';
+        if (value >= 93) return 'A';
+        if (value >= 90) return 'A−';
+        if (value >= 87) return 'B+';
+        if (value >= 83) return 'B';
+        if (value >= 80) return 'B−';
+        if (value >= 77) return 'C+';
+        if (value >= 73) return 'C';
+        if (value >= 70) return 'C−';
+        if (value >= 67) return 'D+';
+        if (value >= 63) return 'D';
+        if (value >= 60) return 'D−';
+        return 'F';
+      }
+
+      function update() {
+        const raw = $('currentGrade').value;
+        const current = raw === '' ? null : Number(raw);
+        const score = Number($('assignmentScore').value);
+        const category = $('assignmentCategory').value;
+        $('scoreLabel').textContent = score + '%';
+
+        if (current === null || !Number.isFinite(current)) {
+          $('currentLetter').textContent = '—';
+          $('projectedGrade').innerHTML = '—<em>%</em>';
+          $('projectedLetter').textContent = 'Projected: —';
+          $('gradeDelta').textContent = 'Enter your current grade';
+          $('gradeDelta').className = 'delta';
+          return;
+        }
+
+        const safeCurrent = Math.max(0, Math.min(100, current));
+        const categoryAverage = (safeCurrent + score) / 2;
+        const projected = safeCurrent * (1 - weights[category]) + categoryAverage * weights[category];
+        const change = projected - safeCurrent;
+
+        $('currentLetter').textContent = letterGrade(safeCurrent);
+        $('projectedGrade').innerHTML = projected.toFixed(1) + '<em>%</em>';
+        $('projectedLetter').textContent = 'Projected: ' + letterGrade(projected);
+        const delta = $('gradeDelta');
+        delta.className = 'delta';
+        if (change > 0.04) {
+          delta.textContent = '↑ +' + change.toFixed(1) + ' pts';
+          delta.classList.add('up');
+        } else if (change < -0.04) {
+          delta.textContent = '↓ ' + change.toFixed(1) + ' pts';
+          delta.classList.add('down');
+        } else {
+          delta.textContent = '→ No change';
+        }
+      }
+
+      $('currentGrade').addEventListener('input', event => {
+        const value = Number(event.target.value);
+        if (event.target.value !== '' && Number.isFinite(value)) {
+          if (value > 100) event.target.value = 100;
+          if (value < 0) event.target.value = 0;
+        }
+        update();
+      });
+      $('assignmentScore').addEventListener('input', update);
+      $('assignmentCategory').addEventListener('change', update);
+      update();
+    })();
+  ]]></script>
+  <script type="application/ecmascript"><![CDATA[
+  (() => {
+    const widget = document.getElementById('batteryWidget');
+    const fill = document.getElementById('bwFill');
+    const levelBar = document.getElementById('bwLevel');
+    const percent = document.getElementById('bwPercent');
+    const status = document.getElementById('bwStatus');
+    const sourceTag = document.getElementById('bwSourceTag');
+    const levelValue = document.getElementById('bwLevelValue');
+    const unavailableNote = document.getElementById('bwUnavailable');
+
+    if (!widget || !fill || !levelBar || !percent || !status) return;
+
+    function paint(level, charging) {
+      const pct = Math.max(0, Math.min(100, Math.round(level * 100)));
+      const state = charging
+        ? (pct >= 99 ? 'Fully charged' : 'Charging')
+        : (pct >= 95 ? 'Battery full' : 'On battery');
+      percent.textContent = pct + '%';
+      if (levelValue) levelValue.textContent = pct + '%';
+      fill.style.width = pct + '%';
+      levelBar.style.width = pct + '%';
+      widget.classList.remove('unavailable');
+      if (unavailableNote) unavailableNote.hidden = true;
+      widget.classList.toggle('charging', !!charging);
+      widget.classList.toggle('low', pct <= 20 && !charging);
+      widget.classList.toggle('full', pct >= 95);
+      status.textContent = state;
+      if (sourceTag) sourceTag.textContent = 'LIVE';
+      widget.title = 'Chromebook battery: ' + pct + '% — ' + state;
+    }
+
+    function unavailable() {
+      percent.textContent = 'N/A';
+      status.textContent = 'Not available here';
+      if (levelValue) levelValue.textContent = '—';
+      fill.style.width = '0%';
+      levelBar.style.width = '0%';
+      widget.classList.add('unavailable');
+      if (unavailableNote) unavailableNote.hidden = false;
+      widget.classList.remove('charging', 'low', 'full');
+      if (sourceTag) sourceTag.textContent = 'UNAVAILABLE';
+      widget.title = 'This browser does not expose Chromebook battery information to webpages';
+    }
+
+    async function initBattery() {
+      if (typeof navigator.getBattery !== 'function') {
+        unavailable();
+        return;
+      }
+
+      try {
+        const battery = await navigator.getBattery();
+        const update = () => paint(battery.level, battery.charging);
+        update();
+        battery.addEventListener('levelchange', update);
+        battery.addEventListener('chargingchange', update);
+      } catch (error) {
+        unavailable();
+      }
+    }
+
+    initBattery();
+  })();
+  ]]></script>
+  <script type="application/ecmascript"><![CDATA[
+  (() => {
+    const timeEl = document.getElementById('swTime');
+    const dateEl = document.getElementById('swDate');
+    const periodEl = document.getElementById('swPeriod');
+    const leftEl = document.getElementById('swLeft');
+    const progressEl = document.getElementById('swProgress');
+    const widget = document.getElementById('schoolWidget');
+    const scheduleToggle = document.getElementById('swScheduleToggle');
+    const schedulePanel = document.getElementById('swSchedule');
+
+    if (!timeEl || !dateEl || !periodEl || !leftEl || !progressEl ||
+        !widget || !scheduleToggle || !schedulePanel) return;
+
+    schedulePanel.style.display = 'none';
+    schedulePanel.style.visibility = 'hidden';
+
+    const schedule = [
+      { id: 'Period 1', start: [7, 22], end: [8, 8] },
+      { id: 'Period 2', start: [8, 12], end: [8, 59] },
+      { id: 'Period 3', start: [9, 3], end: [9, 50] },
+      { id: 'Period 4', start: [9, 54], end: [10, 41] },
+      { id: 'Period 5', start: [10, 46], end: [12, 2] },
+      { id: 'Period 6', start: [12, 8], end: [12, 52] },
+      { id: 'Period 7', start: [12, 56], end: [13, 43] }
+    ];
+
+    function formatScheduleTime(parts) {
+      const hour = parts[0];
+      const minute = String(parts[1]).padStart(2, '0');
+      const suffix = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = ((hour + 11) % 12) + 1;
+      return displayHour + ':' + minute + ' ' + suffix;
+    }
+
+    // Schedule rows are part of the SVG markup (not inserted with innerHTML).
+    // This avoids an empty popover in browsers that isolate SVG foreignObject content.
+    function setScheduleOpen(open) {
+      widget.classList.toggle('scheduleOpen', open);
+      schedulePanel.classList.toggle('open', open);
+      schedulePanel.style.display = open ? 'block' : 'none';
+      schedulePanel.style.visibility = open ? 'visible' : 'hidden';
+      scheduleToggle.setAttribute('aria-expanded', String(open));
+      schedulePanel.setAttribute('aria-hidden', String(!open));
+    }
+
+    // Do not use a document-wide outside-click listener here: SVG event retargeting
+    // can make a click inside foreignObject look like an outside click.
+    scheduleToggle.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      setScheduleOpen(!schedulePanel.classList.contains('open'));
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && schedulePanel.classList.contains('open')) {
+        setScheduleOpen(false);
+      }
+    });
+
+    const fmtTime = new Intl.DateTimeFormat(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    const fmtDate = new Intl.DateTimeFormat(undefined, {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    function minsSinceMidnight(date) {
+      return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60;
+    }
+
+    function clockString(minutes) {
+      const total = Math.max(0, Math.round(minutes));
+      if (total < 1) return 'less than 1 min';
+      return total + (total === 1 ? ' min' : ' mins');
+    }
+
+    function paint() {
+      const now = new Date();
+      const weekday = now.getDay();
+      const t = minsSinceMidnight(now);
+
+      timeEl.textContent = fmtTime.format(now);
+      dateEl.textContent = fmtDate.format(now);
+      schedulePanel.querySelectorAll('.swScheduleItem').forEach(item => item.classList.remove('active'));
+      widget.classList.remove('out');
+      progressEl.style.width = '0%';
+
+      if (weekday === 0 || weekday === 6) {
+        periodEl.textContent = 'No school';
+        widget.setAttribute('aria-label', 'School clock. No school today.');
+        leftEl.textContent = 'Enjoy your day';
+        widget.classList.add('out');
+        return;
+      }
+
+      const first = schedule[0].start[0] * 60 + schedule[0].start[1];
+      const last = schedule[schedule.length - 1].end[0] * 60 + schedule[schedule.length - 1].end[1];
+
+      if (t < first || t >= last) {
+        periodEl.textContent = 'Out of school';
+        widget.setAttribute('aria-label', 'School clock. Outside school hours.');
+        leftEl.textContent = t < first
+          ? 'P1 starts at ' + formatScheduleTime(schedule[0].start)
+          : 'School day over';
+        widget.classList.add('out');
+        return;
+      }
+
+      for (let i = 0; i < schedule.length; i++) {
+        const period = schedule[i];
+        const start = period.start[0] * 60 + period.start[1];
+        const end = period.end[0] * 60 + period.end[1];
+
+        if (t >= start && t < end) {
+          const elapsed = t - start;
+          const duration = end - start;
+          const progress = Math.min(100, Math.max(0, (elapsed / duration) * 100));
+          periodEl.textContent = period.id;
+          widget.setAttribute('aria-label', 'School clock. Current period: ' + period.id);
+          const activeItem = schedulePanel.querySelector(
+            '.swScheduleItem[data-period="' + period.id + '"]'
+          );
+          if (activeItem) activeItem.classList.add('active');
+          leftEl.textContent = clockString(end - t) + ' left';
+          progressEl.style.width = progress.toFixed(2) + '%';
+          return;
+        }
+
+        if (i < schedule.length - 1) {
+          const next = schedule[i + 1];
+          const nextStart = next.start[0] * 60 + next.start[1];
+
+          if (t >= end && t < nextStart) {
+            const gapElapsed = t - end;
+            const gapDuration = nextStart - end;
+            const progress = Math.min(100, Math.max(0, (gapElapsed / gapDuration) * 100));
+            periodEl.textContent = 'Passing period';
+            widget.setAttribute('aria-label', 'School clock. Passing period before ' + next.id + '.');
+            leftEl.textContent = next.id + ' starts in ' + clockString(nextStart - t);
+            progressEl.style.width = progress.toFixed(2) + '%';
+            return;
+          }
+        }
+      }
+    }
+
+    paint();
+    window.setInterval(paint, 1000);
+  })();
+  ]]></script>
+  <script type="application/ecmascript"><![CDATA[
+  (() => {
+    const loader = document.getElementById('loadingScreen');
+    const status = document.getElementById('loaderStatus');
+    if (!loader || !status) return;
+
+    const messages = [
+      'PREPARING YOUR GRADE DASHBOARD...',
+      'LOADING GRADE CATEGORIES...',
+      'SETTING UP YOUR FORECAST...',
+      'SYNCING THE LIVE CALCULATOR...',
+      'CHECKING YOUR WORKSPACE...',
+      'ALMOST READY...',
+      'GRADEPILOT IS READY'
+    ];
+
+    let messageIndex = 0;
+    const messageTimer = window.setInterval(() => {
+      messageIndex++;
+      if (messageIndex < messages.length) status.textContent = messages[messageIndex];
+    }, 430);
+
+    const reveal = () => {
+      window.setTimeout(() => {
+        window.clearInterval(messageTimer);
+        status.textContent = 'GRADEPILOT IS READY';
+        window.setTimeout(() => {
+          loader.classList.add('hide');
+          window.setTimeout(() => loader.remove(), 950);
+        }, 300);
+      }, 2600);
+    };
+
+    if (document.readyState === 'complete') reveal();
+    else window.addEventListener('load', reveal, { once: true });
+  })();
+  ]]></script>
+</svg>
